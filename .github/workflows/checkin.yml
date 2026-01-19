@@ -20,16 +20,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install dailycheckin --upgrade
       - name: Run dailycheckin
-        env:
-          # 这一行是关键：它把 GitHub 存的 Secret 映射给程序用
-          MY_CONFIG: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          # 1. 检查变量是否存在
-          if [ -z "$MY_CONFIG" ]; then
-            echo "❌ 错误：读取不到名为 DAILYCHECKIN_CONFIG 的 Secret！"
-            echo "请检查 Settings -> Secrets 里的名字是否写错（有没有多余空格）。"
-            exit 1
-          fi
-          # 2. 生成文件并运行
-          echo "$MY_CONFIG" > config.json
+          # 直接从 GitHub 内部变量读取并写入文件
+          cat <<EOF > config.json
+          ${{ secrets.DAILYCHECKIN_CONFIG }}
+          EOF
+          # 运行
           dailycheckin --include QQ --config ./config.json
