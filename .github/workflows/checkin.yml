@@ -21,9 +21,14 @@ jobs:
           pip install dailycheckin --upgrade
       - name: Run dailycheckin
         run: |
-          # 直接从 GitHub 内部变量读取并写入文件
-          cat <<EOF > config.json
+          # 1. 明确获取当前绝对路径，并在该路径下精准创建文件
+          CUR_DIR=$(pwd)
+          cat <<EOF > $CUR_DIR/config.json
           ${{ secrets.DAILYCHECKIN_CONFIG }}
           EOF
-          # 运行
-          dailycheckin --include QQ --config ./config.json
+          
+          # 2. 打印一下文件列表，让我们在日志里能亲眼看到文件真的存在
+          ls -lh $CUR_DIR/config.json
+          
+          # 3. 运行签到，强制指定绝对路径
+          dailycheckin --include QQ --config $CUR_DIR/config.json
