@@ -23,5 +23,5 @@ jobs:
         env:
           DAILYCHECKIN_CONFIG: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          echo '${{ secrets.DAILYCHECKIN_CONFIG }}' > config.json
-          dailycheckin --include QQ
+          echo "$DAILYCHECKIN_CONFIG" > ./config.json
+          dailycheckin --include QQ --config ./config.json
