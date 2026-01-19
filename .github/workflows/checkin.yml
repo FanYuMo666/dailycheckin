@@ -23,4 +23,7 @@ jobs:
         env:
           DAILYCHECKIN_CONFIG: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          echo "$DAILYCHECKIN_CONFIG" | dailycheckin --include QQ
+          # 使用 Python 强行把环境变量写进物理文件，确保编码和格式绝对正确
+          python3 -c "import os; open('config.json', 'w').write(os.environ['DAILYCHECKIN_CONFIG'])"
+          # 运行签到，并明确指定配置文件路径
+          dailycheckin --include QQ --config ./config.json
