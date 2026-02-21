@@ -1,31 +1,13 @@
-name: DailyCheckIn
-
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *"
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install dailycheckin --upgrade
-
-      - name: Run dailycheckin
+- name: Run dailycheckin
         env:
-          # 这一行是关键：只要这个环境变量名对上，工具会自动读取
-          DAILYCHECKIN_CONFIG: ${{ secrets.DAILYCHECKIN_CONFIG }}
+          # 依然引用你已经修好的那个 Secret
+          MY_SECRET_DATA: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          # 既然函数签名变了，我们直接用官方命令行触发，它会自动识别 ENV 变量
-          dailycheckin --include QQ
+          # 1. 强制在当前工作目录下生成 config.json
+          echo "$MY_SECRET_DATA" > config.json
+          
+          # 2. 物理确认：在日志里打印出文件内容（会自动打码 Cookie），确保文件真的在那
+          cat config.json
+          
+          # 3. 强制指定路径运行，不再让它自己乱找
+          dailycheckin --include QQ --config ./config.json
