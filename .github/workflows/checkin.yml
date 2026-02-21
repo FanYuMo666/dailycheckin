@@ -1,13 +1,37 @@
-- name: Run dailycheckin
+name: DailyCheckIn
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dailycheckin --upgrade
+
+      - name: Run dailycheckin
         env:
-          # 依然引用你已经修好的那个 Secret
+          # 引用你已经修好且“严丝合缝”的 Secret 数据
           MY_SECRET_DATA: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          # 1. 强制在当前工作目录下生成 config.json
+          # 1. 强行把环境变量的内容写进当前目录的 config.json
           echo "$MY_SECRET_DATA" > config.json
           
-          # 2. 物理确认：在日志里打印出文件内容（会自动打码 Cookie），确保文件真的在那
-          cat config.json
+          # 2. 物理确认文件是否生成（这步是为了在日志里给你看证据）
+          ls -l config.json
           
-          # 3. 强制指定路径运行，不再让它自己乱找
+          # 3. 强制指定配置文件路径运行，解决工具乱搜目录的问题
           dailycheckin --include QQ --config ./config.json
