@@ -1,9 +1,9 @@
 name: DailyCheckIn
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # 支持手动点击运行
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * *" # 每天 UTC 0点（北京时间早上8点）自动运行
 
 jobs:
   build:
@@ -26,8 +26,24 @@ jobs:
         env:
           DAILYCHECKIN_CONFIG: ${{ secrets.DAILYCHECKIN_CONFIG }}
         run: |
-          # 1. 强行生成配置文件到当前目录
-          echo "$DAILYCHECKIN_CONFIG" > config.json
-          
-          # 2. 用 Python 脚本直接调用工具包，避开命令行参数 Bug
-          python3 -c "from dailycheckin.main import checkin; import json; checkin(json.loads(open('config.json').read()), ['QQ'])"
+          # 使用 Python 脚本直接驱动，自动清理可能存在的非法空格或换行
+          python3 -c "
+          import os, json
+          try:
+              from dailycheckin.main import checkin
+              # 1. 读取并清洗 Secret 数据
+              raw_config = os.environ.get('DAILYCHECKIN_CONFIG', '').strip()
+              config_data = json.loads(raw_config)
+              
+              # 2. 自动修正 Cookie 可能存在的末尾空格问题
+              if 'QQ' in config_data:
+                  for item in config_data['QQ']:
+                      if 'cookie' in item:
+                          item['cookie'] = item['cookie'].strip()
+              
+              # 3. 启动签到任务
+              checkin(config_data, ['QQ'])
+          except Exception as e:
+              print(f'❌ 运行失败，原因: {e}')
+              exit(1)
+          "
